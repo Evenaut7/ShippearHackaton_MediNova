@@ -1,0 +1,77 @@
+Interfaz de usuario — Sistema de asistencia clínica con IA
+Contexto y objetivo
+
+Estoy construyendo el frontend de una aplicación web para una clínica/hospital. El objetivo del sistema es ayudar al médico a detectar síntomas o patrones que podrían pasarse por alto al analizar cada consulta de forma aislada.
+
+Flujo general del producto:
+
+El paciente entra al consultorio y el médico graba la consulta (audio).
+Al finalizar, una IA genera un reporte estructurado de esa consulta.
+El médico revisa el reporte, lo edita si hace falta, y lo aprueba ("okey").
+El reporte aprobado se guarda en el historial del paciente.
+Una IA analiza el conjunto histórico de reportes del paciente y genera una "opinión" u observación (por ejemplo: patrones recurrentes, posibles correlaciones entre consultas, síntomas que aparecieron en más de una visita sin conexión evidente).
+
+Alcance de este pedido
+
+Necesito el código frontend en Next.js + React. Por ahora no hace falta backend real: se puede usar data mockeada / estado local, dejando la estructura lista para conectar una API después.
+
+Stack técnico
+Next.js (App Router)
+React
+TypeScript
+Tailwind CSS para estilos
+shadcn/ui como librería de componentes base (cards, tablas, dialogs, forms, badges, tabs)
+lucide-react para iconografía
+Diseño responsive (debe verse bien en desktop, que es el uso principal en consultorio, y aceptable en tablet)
+Identidad visual
+Colores principales: azul, blanco y rojo
+Azul: color primario, headers, botones principales, elementos de navegación, estados "informativo/neutral"
+Blanco: fondo base, tarjetas, espacios de respiro
+Rojo: reservado para alertas, hallazgos importantes de la IA, campos requeridos, estados críticos — no usarlo como color decorativo genérico, para que mantenga su peso semántico de "atención"
+Estética clínica: limpia, profesional, con buen contraste, tipografía legible (sans-serif, ej. Inter), suficiente espacio en blanco. Evitar que se vea "corporativo genérico" — priorizar claridad para uso rápido durante la consulta.
+Accesibilidad: contraste AA mínimo, tamaños de fuente legibles, foco visible en elementos interactivos.
+
+Pantallas a construir
+1. Gestión de usuarios (CRUD)
+
+Pantalla de administración de pacientes (solo pacientes).
+
+Tabla/listado de usuarios con: nombre, documento, última consulta, acciones (ver, editar, eliminar).
+Buscador y filtro (por nombre o documento).
+Botón "Nuevo paciente" que abre un formulario (modal o página) con datos básicos: nombre completo, documento, fecha de nacimiento, sexo, teléfono, email, dirección, obra social/seguro (si aplica), contacto de emergencia.
+Edición del mismo formulario.
+Confirmación antes de eliminar (dialog de confirmación, no borrado directo).
+Estados vacíos (sin pacientes cargados) y de carga.
+
+2. Historial médico (vista de un paciente)
+
+Al entrar a un usuario desde el listado, se accede a una vista con dos secciones (layout de dos columnas):
+
+A. Información personal básica
+
+Datos de contacto y demográficos (los mismos campos del CRUD, en modo lectura con opción de editar).
+
+B. Historial de consultas médicas
+
+Listado cronológico de consultas (más reciente primero), cada una mostrando: fecha, motivo de consulta, médico que atendió.
+Al hacer click en una consulta, se expande o navega a un detalle con el reporte generado por la IA (texto estructurado: motivo de consulta, síntomas, diagnóstico, indicaciones, notas).
+Un espacio destacado para la "opinión" generada por la IA sobre el historial completo: un panel o card diferenciado (usando el rojo/azul de forma semántica) que resuma hallazgos cruzados entre consultas — por ejemplo "síntoma X reportado en 3 consultas distintas sin diagnóstico común"
+Botón/acción para "cargar un audio de nueva consulta" (el médico carga el audio que graba en su celular).
+Componentes reutilizables sugeridos
+PatientTable (tabla con acciones)
+PatientFormDialog (crear/editar)
+PatientProfileCard (info personal)
+ConsultationTimeline (historial de consultas)
+ConsultationDetailCard (reporte individual)
+AIInsightPanel (opinión de la IA sobre el historial completo — componente visualmente distintivo)
+ConfirmDeleteDialog
+EmptyState
+LoadingSkeleton
+Datos de ejemplo (mock)
+
+Generar 4-5 pacientes de ejemplo, cada uno con 2-4 consultas históricas con reportes de texto realistas (motivo, síntomas, diagnóstico, notas del médico) para poder ver la UI poblada, incluyendo al menos un caso donde el panel de "opinión de IA" tenga contenido relevante que mostrar.
+
+
+Fuera de alcance (por ahora)
+Autenticación / login
+Conexión a backend real / base de datos
