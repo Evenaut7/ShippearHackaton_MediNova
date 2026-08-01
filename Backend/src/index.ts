@@ -11,8 +11,21 @@ import consultationRoutes from './routes/consultationRoutes.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// CORS_ORIGIN admite uno o varios orígenes separados por coma (sin barra final).
+const allowedOrigins = (process.env.CORS_ORIGIN || '*')
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/$/, ''))
+    .filter(Boolean);
+
 // Middlewares globales
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
+app.use(
+    cors({
+        origin:
+            allowedOrigins.length === 0 || allowedOrigins.includes('*')
+                ? '*'
+                : allowedOrigins,
+    }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
