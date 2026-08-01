@@ -1,9 +1,9 @@
 # Dependencies
-Backend/node_modules/
+node_modules/
 
 # Build output
-Backend/dist/
-Backend/build/
+/dist/
+/build/
 
 # Environment files
 .env
