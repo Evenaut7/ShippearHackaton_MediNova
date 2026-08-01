@@ -74,14 +74,9 @@ export function PatientsProvider({ children }: { children: ReactNode }) {
 
   const addConsultation = useCallback(
     async (patientId: string, values: ConsultationFormValues) => {
-      const newConsultation = await consultationsApi.create(patientId, values);
-      setPatients((prev) =>
-        prev.map((patient) =>
-          patient.id === patientId
-            ? { ...patient, consultas: [newConsultation, ...patient.consultas] }
-            : patient,
-        ),
-      );
+      await consultationsApi.create(patientId, values);
+      const refreshed = await patientsApi.get(patientId);
+      setPatients((prev) => prev.map((patient) => (patient.id === patientId ? refreshed : patient)));
     },
     [],
   );

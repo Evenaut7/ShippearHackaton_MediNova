@@ -42,6 +42,10 @@ interface PatientDTO {
   obraSocial?: string | null;
   contactoEmergenciaNombre?: string | null;
   contactoEmergenciaTelefono?: string | null;
+  aiInsightNivel?: string | null;
+  aiInsightResumen?: string | null;
+  aiInsightHallazgos?: string[] | null;
+  aiInsightGeneradoEl?: string | null;
   consultations?: ConsultationDTO[];
 }
 
@@ -108,6 +112,15 @@ function toPatient(dto: PatientDTO): Patient {
       telefono: dto.contactoEmergenciaTelefono ?? "",
     },
     consultas: (dto.consultations ?? []).map(toConsultation),
+    aiInsight:
+      dto.aiInsightNivel && dto.aiInsightGeneradoEl
+        ? {
+            nivel: dto.aiInsightNivel === "alerta" ? "alerta" : "info",
+            resumen: dto.aiInsightResumen ?? "",
+            hallazgos: dto.aiInsightHallazgos ?? [],
+            generadoEl: dto.aiInsightGeneradoEl,
+          }
+        : undefined,
   };
 }
 

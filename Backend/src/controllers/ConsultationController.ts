@@ -1,6 +1,32 @@
 import { Request, Response } from 'express';
 import { em } from '../database.js';
-import { ConsultationSchema, ProfessionalSchema, PatientSchema } from '../entities/index.js';
+import { ConsultationSchema, ProfessionalSchema, PatientSchema, Patient } from '../entities/index.js';
+import { InsightService } from '../services/InsightService.js';
+
+const MIN_CONSULTATIONS_FOR_INSIGHT = 2;
+
+async function refreshPatientInsight(patient: Patient) {
+    const consultations = await em.find(
+        ConsultationSchema,
+        { patient: patient.id },
+        { orderBy: { fecha: 'ASC' } },
+    );
+
+    if (consultations.length < MIN_CONSULTATIONS_FOR_INSIGHT) {
+        return;
+    }
+
+    try {
+        const insight = await InsightService.analyze(consultations);
+        patient.aiInsightNivel = insight.nivel;
+        patient.aiInsightResumen = insight.resumen;
+        patient.aiInsightHallazgos = insight.hallazgos;
+        patient.aiInsightGeneradoEl = new Date();
+        await em.flush();
+    } catch (error) {
+        console.error('Error generando la opinión de IA sobre el historial:', error);
+    }
+}
 
 export class ConsultationController {
     static async list(req: Request, res: Response) {
@@ -61,6 +87,7 @@ export class ConsultationController {
 
         em.persist(consultation);
         await em.flush();
+        await refreshPatientInsight(patient);
         return res.status(201).json(consultation);
     }
 

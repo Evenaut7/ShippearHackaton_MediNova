@@ -22,6 +22,10 @@ export interface Patient {
     obraSocial?: string;
     contactoEmergenciaNombre?: string;
     contactoEmergenciaTelefono?: string;
+    aiInsightNivel?: string;
+    aiInsightResumen?: string;
+    aiInsightHallazgos?: string[];
+    aiInsightGeneradoEl?: Date;
     createdAt?: Date;
     consultations?: Consultation[];
 }
@@ -75,6 +79,10 @@ export const PatientSchema: EntitySchema<Patient> = new EntitySchema<Patient>({
         obraSocial: { type: 'string', nullable: true },
         contactoEmergenciaNombre: { type: 'string', nullable: true },
         contactoEmergenciaTelefono: { type: 'string', nullable: true },
+        aiInsightNivel: { type: 'string', nullable: true },
+        aiInsightResumen: { type: 'text', nullable: true },
+        aiInsightHallazgos: { type: 'json', nullable: true },
+        aiInsightGeneradoEl: { type: 'Date', nullable: true },
         createdAt: { type: 'Date', onCreate: () => new Date() },
         consultations: {
             kind: '1:m',
