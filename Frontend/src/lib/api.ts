@@ -202,15 +202,15 @@ export interface GeneratedReport {
 }
 
 export const audioApi = {
-  async generateReport(file: File): Promise<GeneratedReport> {
-    const formData = new FormData();
-    formData.append("audio", file);
+  async generateReport(audioUrl: string): Promise<GeneratedReport> {
     return request<GeneratedReport>("/audio/generate-report", {
       method: "POST",
-      body: formData,
+      body: JSON.stringify({ audioUrl }),
     });
   },
 };
+
+export const AUDIO_UPLOAD_TOKEN_URL = `${API_URL}/audio/upload-token`;
 
 export const consultationsApi = {
   async create(patientId: string, values: ConsultationFormValues): Promise<Consultation> {

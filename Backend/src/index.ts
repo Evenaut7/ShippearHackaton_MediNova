@@ -28,6 +28,6 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     res.status(500).json({ error: 'Ocurrió un error interno en el servidor.' });
 });
 
-app.listen(PORT, () => {
+app.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`🚀 Servidor backend corriendo en http://localhost:${PORT}`);
 });

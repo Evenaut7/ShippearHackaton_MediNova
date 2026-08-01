@@ -15,6 +15,11 @@ const config = defineConfig({
     driver: MySqlDriver,
     debug: process.env.DB_DEBUG === 'true',
     allowGlobalContext: true,
+    // La mayoría de los MySQL gestionados (PlanetScale, Railway, Aiven, etc.) exigen SSL.
+    driverOptions:
+        process.env.DB_SSL === 'true'
+            ? { ssl: { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' } }
+            : {},
 });
 
 export default config;
