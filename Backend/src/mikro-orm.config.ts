@@ -1,12 +1,12 @@
 import { defineConfig } from '@mikro-orm/mysql';
 import { MySqlDriver } from '@mikro-orm/mysql';
 import dotenv from 'dotenv';
-import { User } from './entities/User.js';
+import { ConsultationSchema, PatientSchema, ProfessionalSchema } from './entities/index.js';
 
 dotenv.config();
 
 const config = defineConfig({
-    entities: [User],
+    entities: [ProfessionalSchema, PatientSchema, ConsultationSchema],
     dbName: process.env.DB_NAME || 'medinova',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
