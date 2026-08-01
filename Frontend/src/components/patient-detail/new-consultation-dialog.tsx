@@ -23,7 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { audioApi, type GeneratedReport } from "@/lib/api";
+import { upload } from "@vercel/blob/client";
+import { audioApi, AUDIO_UPLOAD_TOKEN_URL, type GeneratedReport } from "@/lib/api";
 import { useProfessionals } from "@/context/professionals-context";
 import type { ConsultationFormValues } from "@/lib/types";
 
@@ -101,7 +102,11 @@ export function NewConsultationDialog({
 
     setStep("procesando");
     try {
-      const report = await audioApi.generateReport(file);
+      const blob = await upload(file.name, file, {
+        access: "private",
+        handleUploadUrl: AUDIO_UPLOAD_TOKEN_URL,
+      });
+      const report = await audioApi.generateReport(blob.url);
       setDraft(toDraft(report));
       setStep("revisar");
     } catch (error) {

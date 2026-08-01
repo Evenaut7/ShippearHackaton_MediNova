@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { ConsultationController } from '../controllers/ConsultationController.js';
-import { upload } from '../config/multer.js';
 
 const router = Router();
 
