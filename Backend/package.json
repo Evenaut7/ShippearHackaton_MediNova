@@ -1,0 +1,30 @@
+{
+  "name": "Backend",
+  "version": "1.0.0",
+  "description": "Express + MikroORM + MySQL backend",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "tsc -p tsconfig.json --watch"
+  },
+  "dependencies": {
+    "@mikro-orm/cli": "^7.1.9",
+    "@mikro-orm/core": "^7.1.9",
+    "@mikro-orm/entity-generator": "^7.1.9",
+    "@mikro-orm/mysql": "^7.1.9",
+    "@mikro-orm/reflection": "^7.1.9",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mysql2": "^3.23.2"
+  },
+  "packageManager": "pnpm@10.12.1",
+  "devDependencies": {
+    "@types/cors": "^2.8.6",
+    "@types/express": "^5.0.0",
+    "@types/node": "^26.1.2",
+    "typescript": "^7.0.2"
+  }
+}
