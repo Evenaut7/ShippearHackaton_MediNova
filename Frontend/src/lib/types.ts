@@ -5,15 +5,28 @@ export interface ContactoEmergencia {
   telefono: string;
 }
 
+export interface Professional {
+  id: string;
+  nombreCompleto: string;
+  especialidad?: string;
+  email?: string;
+  telefono?: string;
+}
+
+export type ProfessionalFormValues = Omit<Professional, "id">;
+
 export interface Consultation {
   id: string;
   fecha: string; // ISO datetime
+  professionalId: string;
   medico: string;
   motivoConsulta: string;
   sintomas: string[];
   diagnostico: string;
   indicaciones: string;
   notas: string;
+  transcript?: string;
+  audioPath?: string;
 }
 
 export interface AIInsight {
@@ -40,4 +53,4 @@ export interface Patient {
 
 export type PatientFormValues = Omit<Patient, "id" | "consultas" | "aiInsight">;
 
-export type ConsultationFormValues = Omit<Consultation, "id">;
+export type ConsultationFormValues = Omit<Consultation, "id" | "medico">;

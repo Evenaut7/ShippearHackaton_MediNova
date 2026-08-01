@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { initialPatients } from "@/lib/mock-data";
+import { patientsApi, consultationsApi } from "@/lib/api";
 import type {
   ConsultationFormValues,
   Patient,
@@ -20,28 +20,31 @@ interface PatientsContextValue {
   patients: Patient[];
   isLoading: boolean;
   getPatient: (id: string) => Patient | undefined;
-  addPatient: (values: PatientFormValues) => Patient;
-  updatePatient: (id: string, values: PatientFormValues) => void;
-  deletePatient: (id: string) => void;
-  addConsultation: (patientId: string, values: ConsultationFormValues) => void;
+  addPatient: (values: PatientFormValues) => Promise<Patient>;
+  updatePatient: (id: string, values: PatientFormValues) => Promise<void>;
+  deletePatient: (id: string) => Promise<void>;
+  addConsultation: (patientId: string, values: ConsultationFormValues) => Promise<void>;
 }
 
 const PatientsContext = createContext<PatientsContextValue | null>(null);
-
-function createId(prefix: string) {
-  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-}
 
 export function PatientsProvider({ children }: { children: ReactNode }) {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setPatients(initialPatients);
-      setIsLoading(false);
-    }, 600);
-    return () => clearTimeout(timeout);
+    let cancelled = false;
+    patientsApi
+      .list()
+      .then((data) => {
+        if (!cancelled) setPatients(data);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const getPatient = useCallback(
@@ -49,40 +52,33 @@ export function PatientsProvider({ children }: { children: ReactNode }) {
     [patients],
   );
 
-  const addPatient = useCallback((values: PatientFormValues) => {
-    const newPatient: Patient = {
-      ...values,
-      id: createId("p"),
-      consultas: [],
-    };
+  const addPatient = useCallback(async (values: PatientFormValues) => {
+    const newPatient = await patientsApi.create(values);
     setPatients((prev) => [newPatient, ...prev]);
     return newPatient;
   }, []);
 
-  const updatePatient = useCallback((id: string, values: PatientFormValues) => {
+  const updatePatient = useCallback(async (id: string, values: PatientFormValues) => {
+    const updated = await patientsApi.update(id, values);
     setPatients((prev) =>
       prev.map((patient) =>
-        patient.id === id ? { ...patient, ...values } : patient,
+        patient.id === id ? { ...updated, consultas: patient.consultas, aiInsight: patient.aiInsight } : patient,
       ),
     );
   }, []);
 
-  const deletePatient = useCallback((id: string) => {
+  const deletePatient = useCallback(async (id: string) => {
+    await patientsApi.remove(id);
     setPatients((prev) => prev.filter((patient) => patient.id !== id));
   }, []);
 
   const addConsultation = useCallback(
-    (patientId: string, values: ConsultationFormValues) => {
+    async (patientId: string, values: ConsultationFormValues) => {
+      const newConsultation = await consultationsApi.create(patientId, values);
       setPatients((prev) =>
         prev.map((patient) =>
           patient.id === patientId
-            ? {
-                ...patient,
-                consultas: [
-                  { ...values, id: createId("c") },
-                  ...patient.consultas,
-                ],
-              }
+            ? { ...patient, consultas: [newConsultation, ...patient.consultas] }
             : patient,
         ),
       );

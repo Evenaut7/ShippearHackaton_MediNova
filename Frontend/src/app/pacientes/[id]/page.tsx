@@ -37,14 +37,22 @@ export default function PatientDetailPage({ params }: PatientDetailPageProps) {
 
   const patient = getPatient(id);
 
-  function handleUpdatePatient(values: PatientFormValues) {
-    updatePatient(id, values);
-    toast.success("Datos del paciente actualizados.");
+  async function handleUpdatePatient(values: PatientFormValues) {
+    try {
+      await updatePatient(id, values);
+      toast.success("Datos del paciente actualizados.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo actualizar el paciente.");
+    }
   }
 
-  function handleApproveConsultation(values: ConsultationFormValues) {
-    addConsultation(id, values);
-    toast.success("Consulta guardada en el historial del paciente.");
+  async function handleApproveConsultation(values: ConsultationFormValues) {
+    try {
+      await addConsultation(id, values);
+      toast.success("Consulta guardada en el historial del paciente.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo guardar la consulta.");
+    }
   }
 
   return (

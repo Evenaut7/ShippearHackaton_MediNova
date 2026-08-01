@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, type SubmitEvent } from "react";
+import Link from "next/link";
+import { toast } from "sonner";
 import { FileAudio, Loader2, Sparkles } from "lucide-react";
 import {
   Dialog,
@@ -14,17 +16,48 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { audioApi, type GeneratedReport } from "@/lib/api";
+import { useProfessionals } from "@/context/professionals-context";
 import type { ConsultationFormValues } from "@/lib/types";
 
 type Step = "cargar" | "procesando" | "revisar";
 
-const draftTemplate = {
-  motivoConsulta: "Control por síntomas referidos durante la grabación",
-  sintomas: "Dolor localizado, malestar general",
-  diagnostico: "A completar por el médico tras revisar el audio transcripto",
-  indicaciones: "A definir según evaluación clínica",
-  notas: "Reporte generado automáticamente a partir del audio. Revisar y ajustar antes de aprobar.",
+interface Draft {
+  motivoConsulta: string;
+  sintomas: string;
+  diagnostico: string;
+  indicaciones: string;
+  notas: string;
+  transcript?: string;
+  audioPath?: string;
+}
+
+const emptyDraft: Draft = {
+  motivoConsulta: "",
+  sintomas: "",
+  diagnostico: "",
+  indicaciones: "",
+  notas: "",
 };
+
+function toDraft(report: GeneratedReport): Draft {
+  return {
+    motivoConsulta: report.motivoConsulta,
+    sintomas: report.sintomas.join(", "),
+    diagnostico: report.diagnostico,
+    indicaciones: report.indicaciones,
+    notas: report.notas,
+    transcript: report.transcript,
+    audioPath: report.audioPath,
+  };
+}
 
 interface NewConsultationDialogProps {
   open: boolean;
@@ -37,16 +70,17 @@ export function NewConsultationDialog({
   onOpenChange,
   onApprove,
 }: NewConsultationDialogProps) {
+  const { professionals } = useProfessionals();
   const [step, setStep] = useState<Step>("cargar");
-  const [fileName, setFileName] = useState("");
-  const [medico, setMedico] = useState("Dra. Valentina Cruz");
+  const [file, setFile] = useState<File | null>(null);
+  const [professionalId, setProfessionalId] = useState(professionals[0]?.id ?? "");
   const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 16));
-  const [draft, setDraft] = useState(draftTemplate);
+  const [draft, setDraft] = useState<Draft>(emptyDraft);
 
   function reset() {
     setStep("cargar");
-    setFileName("");
-    setDraft(draftTemplate);
+    setFile(null);
+    setDraft(emptyDraft);
   }
 
   function handleDialogChange(nextOpen: boolean) {
@@ -54,19 +88,34 @@ export function NewConsultationDialog({
     onOpenChange(nextOpen);
   }
 
-  function handleGenerate(event: SubmitEvent) {
+  async function handleGenerate(event: SubmitEvent) {
     event.preventDefault();
+    if (!file) {
+      toast.error("Seleccioná un archivo de audio.");
+      return;
+    }
+    if (!professionalId) {
+      toast.error("Seleccioná el profesional que atendió la consulta.");
+      return;
+    }
+
     setStep("procesando");
-    setTimeout(() => {
-      setDraft(draftTemplate);
+    try {
+      const report = await audioApi.generateReport(file);
+      setDraft(toDraft(report));
       setStep("revisar");
-    }, 1600);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "No se pudo generar el reporte a partir del audio.",
+      );
+      setStep("cargar");
+    }
   }
 
   function handleApprove() {
     onApprove({
+      professionalId,
       fecha: new Date(fecha).toISOString(),
-      medico,
       motivoConsulta: draft.motivoConsulta,
       sintomas: draft.sintomas
         .split(",")
@@ -75,6 +124,8 @@ export function NewConsultationDialog({
       diagnostico: draft.diagnostico,
       indicaciones: draft.indicaciones,
       notas: draft.notas,
+      transcript: draft.transcript,
+      audioPath: draft.audioPath,
     });
     handleDialogChange(false);
   }
@@ -101,22 +152,43 @@ export function NewConsultationDialog({
                 >
                   <FileAudio className="h-6 w-6 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">
-                    {fileName || "Hacé click para seleccionar un archivo de audio"}
+                    {file?.name || "Hacé click para seleccionar un archivo de audio"}
                   </span>
                   <input
                     id="audio"
                     type="file"
                     accept="audio/*"
                     className="sr-only"
-                    onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
+                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                   />
                 </label>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="medico">Médico</Label>
-                  <Input id="medico" value={medico} onChange={(e) => setMedico(e.target.value)} />
+                  <Label htmlFor="profesional">Médico</Label>
+                  {professionals.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      No hay profesionales cargados.{" "}
+                      <Link href="/profesionales" className="underline">
+                        Creá uno primero
+                      </Link>
+                      .
+                    </p>
+                  ) : (
+                    <Select value={professionalId} onValueChange={setProfessionalId}>
+                      <SelectTrigger id="profesional" className="w-full">
+                        <SelectValue placeholder="Seleccionar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {professionals.map((professional) => (
+                          <SelectItem key={professional.id} value={professional.id}>
+                            {professional.nombreCompleto}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="fechaConsulta">Fecha y hora</Label>
@@ -134,7 +206,7 @@ export function NewConsultationDialog({
               <Button type="button" variant="outline" onClick={() => handleDialogChange(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">
+              <Button type="submit" disabled={professionals.length === 0}>
                 <Sparkles className="h-4 w-4" />
                 Generar reporte con IA
               </Button>

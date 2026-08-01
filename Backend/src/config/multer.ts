@@ -25,6 +25,6 @@ const storage = multer.diskStorage({
 export const upload = multer({
     storage,
     limits: {
-        fileSize: 50 * 1024 * 1024 // Límite opcional: 50MB por audio
+        fileSize: 25 * 1024 * 1024 // Límite de Groq para transcripción de audio
     }
 });

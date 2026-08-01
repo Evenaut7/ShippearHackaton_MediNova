@@ -20,10 +20,23 @@ export class ConsultationController {
     }
 
     static async create(req: Request, res: Response) {
-        const { audioPath, professionalId, patientId } = req.body;
+        const {
+            patientId,
+            professionalId,
+            fecha,
+            motivoConsulta,
+            sintomas,
+            diagnostico,
+            indicaciones,
+            notas,
+            transcript,
+            audioPath,
+        } = req.body;
 
-        if (!audioPath || !professionalId || !patientId) {
-            return res.status(400).json({ error: 'Se requieren audioPath, professionalId y patientId.' });
+        if (!patientId || !professionalId || !fecha || !motivoConsulta) {
+            return res.status(400).json({
+                error: 'Se requieren patientId, professionalId, fecha y motivoConsulta.',
+            });
         }
 
         const professional = await em.findOne(ProfessionalSchema, { id: Number(professionalId) });
@@ -34,8 +47,14 @@ export class ConsultationController {
         }
 
         const consultation = em.create(ConsultationSchema, {
+            fecha: new Date(fecha),
+            motivoConsulta,
+            sintomas: Array.isArray(sintomas) ? sintomas : [],
+            diagnostico: diagnostico ?? '',
+            indicaciones: indicaciones ?? '',
+            notas: notas ?? '',
+            transcript,
             audioPath,
-            createdAt: new Date(),
             professional,
             patient,
         } as any);
@@ -47,15 +66,22 @@ export class ConsultationController {
 
     static async update(req: Request, res: Response) {
         const id = Number(req.params.id);
-        const { audioPath, professionalId, patientId } = req.body;
+        const {
+            professionalId,
+            patientId,
+            fecha,
+            motivoConsulta,
+            sintomas,
+            diagnostico,
+            indicaciones,
+            notas,
+            transcript,
+            audioPath,
+        } = req.body;
         const consultation = await em.findOne(ConsultationSchema, { id }, { populate: ['professional', 'patient'] });
 
         if (!consultation) {
             return res.status(404).json({ error: 'Consulta no encontrada.' });
-        }
-
-        if (audioPath) {
-            consultation.audioPath = audioPath;
         }
 
         if (professionalId) {
@@ -73,6 +99,15 @@ export class ConsultationController {
             }
             consultation.patient = patient;
         }
+
+        if (fecha) consultation.fecha = new Date(fecha);
+        if (motivoConsulta !== undefined) consultation.motivoConsulta = motivoConsulta;
+        if (sintomas !== undefined) consultation.sintomas = Array.isArray(sintomas) ? sintomas : [];
+        if (diagnostico !== undefined) consultation.diagnostico = diagnostico;
+        if (indicaciones !== undefined) consultation.indicaciones = indicaciones;
+        if (notas !== undefined) consultation.notas = notas;
+        if (transcript !== undefined) consultation.transcript = transcript;
+        if (audioPath !== undefined) consultation.audioPath = audioPath;
 
         await em.flush();
         return res.json(consultation);

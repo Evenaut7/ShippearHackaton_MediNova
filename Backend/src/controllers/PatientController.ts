@@ -4,13 +4,13 @@ import { Patient, PatientSchema } from '../entities/index.js';
 
 export class PatientController {
     static async list(req: Request, res: Response) {
-        const patients = await em.find(PatientSchema, {}, { populate: ['consultations'] });
+        const patients = await em.find(PatientSchema, {}, { populate: ['consultations', 'consultations.professional'] });
         return res.json(patients);
     }
 
     static async get(req: Request, res: Response) {
         const id = Number(req.params.id);
-        const patient = await em.findOne(PatientSchema, { id }, { populate: ['consultations'] });
+        const patient = await em.findOne(PatientSchema, { id }, { populate: ['consultations', 'consultations.professional'] });
 
         if (!patient) {
             return res.status(404).json({ error: 'Paciente no encontrado.' });

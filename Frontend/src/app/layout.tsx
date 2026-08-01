@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { PatientsProvider } from "@/context/patients-context";
+import { ProfessionalsProvider } from "@/context/professionals-context";
 import "./globals.css";
 
 const inter = Inter({
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <PatientsProvider>{children}</PatientsProvider>
+        <ProfessionalsProvider>
+          <PatientsProvider>{children}</PatientsProvider>
+        </ProfessionalsProvider>
         <Toaster richColors position="top-right" />
       </body>
     </html>

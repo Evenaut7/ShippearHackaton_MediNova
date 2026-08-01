@@ -1,22 +1,27 @@
-// src/controllers/AudioController.ts
 import { Request, Response } from 'express';
-import { transcriptionQueue } from '../queue/audioQueue.js';
+import { TranscriptionService } from '../services/TranscriptionService.js';
+import { ReportService } from '../services/ReportService.js';
 
 export class AudioController {
-    static async upload(req: Request, res: Response) {
+    static async generateReport(req: Request, res: Response) {
         if (!req.file) {
             return res.status(400).json({ error: 'No se envió ningún audio.' });
         }
 
-        // Agregamos el trabajo a la cola asíncrona
-        const job = await transcriptionQueue.add('transcribe-task', {
-            filePath: req.file.path // Ej: 'uploads/1690000000-audio.ogg'
-        });
+        const audioPath = req.file.path;
 
-        // Respondemos Inmediatamente (202 Accepted)
-        return res.status(202).json({
-            message: 'Audio recibido y encolado para transcripción.',
-            jobId: job.id
-        });
+        try {
+            const transcript = await TranscriptionService.transcribe(audioPath);
+            const report = await ReportService.structure(transcript);
+
+            return res.json({
+                audioPath,
+                transcript,
+                ...report,
+            });
+        } catch (error) {
+            console.error('Error generando el reporte de audio:', error);
+            return res.status(502).json({ error: 'No se pudo generar el reporte a partir del audio.' });
+        }
     }
 }

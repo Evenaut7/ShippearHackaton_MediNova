@@ -8,6 +8,9 @@ build/
 out/
 *.tsbuildinfo
 
+# Uploaded files
+uploads/
+
 # Environment files
 .env
 .env.local

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PatientTable } from "@/components/patients/patient-table";
 import { PatientFormDialog } from "@/components/patients/patient-form-dialog";
-import { ConfirmDeleteDialog } from "@/components/patients/confirm-delete-dialog";
+import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TableLoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { usePatients } from "@/context/patients-context";
@@ -41,21 +41,30 @@ export default function PacientesPage() {
     setFormOpen(true);
   }
 
-  function handleFormSubmit(values: PatientFormValues) {
-    if (editingPatient) {
-      updatePatient(editingPatient.id, values);
-      toast.success("Paciente actualizado correctamente.");
-    } else {
-      addPatient(values);
-      toast.success("Paciente creado correctamente.");
+  async function handleFormSubmit(values: PatientFormValues) {
+    try {
+      if (editingPatient) {
+        await updatePatient(editingPatient.id, values);
+        toast.success("Paciente actualizado correctamente.");
+      } else {
+        await addPatient(values);
+        toast.success("Paciente creado correctamente.");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo guardar el paciente.");
     }
   }
 
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (!deletingPatient) return;
-    deletePatient(deletingPatient.id);
-    toast.success(`${deletingPatient.nombreCompleto} fue eliminado del sistema.`);
-    setDeletingPatient(undefined);
+    try {
+      await deletePatient(deletingPatient.id);
+      toast.success(`${deletingPatient.nombreCompleto} fue eliminado del sistema.`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo eliminar el paciente.");
+    } finally {
+      setDeletingPatient(undefined);
+    }
   }
 
   return (
@@ -124,7 +133,9 @@ export default function PacientesPage() {
       <ConfirmDeleteDialog
         open={Boolean(deletingPatient)}
         onOpenChange={(open) => !open && setDeletingPatient(undefined)}
-        patientName={deletingPatient?.nombreCompleto ?? ""}
+        title="¿Eliminar paciente?"
+        itemName={deletingPatient?.nombreCompleto ?? ""}
+        description="Se eliminará junto con todo su historial de consultas."
         onConfirm={handleConfirmDelete}
       />
     </div>

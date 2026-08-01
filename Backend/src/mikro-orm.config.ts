@@ -3,7 +3,7 @@ import { MySqlDriver } from '@mikro-orm/mysql';
 import dotenv from 'dotenv';
 import { ConsultationSchema, PatientSchema, ProfessionalSchema } from './entities/index.js';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const config = defineConfig({
     entities: [ProfessionalSchema, PatientSchema, ConsultationSchema],
